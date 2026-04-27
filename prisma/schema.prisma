@@ -1,0 +1,83 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  schemas   = ["public", "auth"]
+}
+
+// Reference to Supabase's auth.users table (read-only, managed by Supabase)
+model User {
+  id        String    @id @db.Uuid
+  email     String?
+  profile   Profile?
+
+  @@map("users")
+  @@schema("auth")
+}
+
+// Our own profile data, linked 1:1 with auth.users
+model Profile {
+  id              String   @id @db.Uuid
+  user            User     @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  fullName        String?  @map("full_name")
+  dateOfBirth     DateTime? @map("date_of_birth") @db.Date
+  heightCm        Float?   @map("height_cm")
+  weightKg        Float?   @map("weight_kg")
+
+  diagnosedAt     DateTime? @map("diagnosed_at") @db.Date
+  phenotype       Phenotype?
+
+  onboardingComplete Boolean @default(false) @map("onboarding_complete")
+
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  cycles          Cycle[]
+
+  @@map("profiles")
+  @@schema("public")
+}
+
+model Cycle {
+  id          String    @id @default(uuid()) @db.Uuid
+  profileId   String    @map("profile_id") @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  startDate   DateTime  @map("start_date") @db.Date
+  endDate     DateTime? @map("end_date") @db.Date
+  flowIntensity FlowIntensity?
+
+  notes       String?
+
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([profileId, startDate])
+  @@map("cycles")
+  @@schema("public")
+}
+
+enum Phenotype {
+  INSULIN_RESISTANT
+  INFLAMMATORY
+  ADRENAL
+  LEAN
+  UNKNOWN
+
+  @@schema("public")
+}
+
+enum FlowIntensity {
+  SPOTTING
+  LIGHT
+  MEDIUM
+  HEAVY
+
+  @@schema("public")
+}
