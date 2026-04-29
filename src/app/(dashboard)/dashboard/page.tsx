@@ -5,7 +5,13 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, TrendingUp, Sparkles, ArrowRight, Plus } from "lucide-react";
+import {
+    computeCycleStats,
+    predictNextPeriod,
+    predictionRange,
+} from "@/lib/pcos/cycle-stats";
 import { LogCycleSheet } from "../cycle/_components/LogCycleSheet";
+import { PredictionCard } from "../cycle/_components/PredictionCard";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -17,12 +23,15 @@ export default async function DashboardPage() {
         include: {
             cycles: {
                 orderBy: { startDate: "desc" },
-                take: 3,
             },
         },
     });
 
     if (!profile?.onboardingComplete) redirect("/welcome");
+
+    const stats = computeCycleStats(profile.cycles);
+    const predicted = predictNextPeriod(profile.cycles, stats.averageLength);
+    const range = predictionRange(predicted, stats.variability);
 
     const lastCycle = profile.cycles[0];
     const daysSinceLastPeriod = lastCycle
@@ -38,6 +47,7 @@ export default async function DashboardPage() {
             : null;
 
     const firstName = profile.fullName?.split(" ")[0] || "there";
+    const recentCycles = profile.cycles.slice(0, 3);
 
     return (
         <div className="mx-auto max-w-6xl px-6 py-12">
@@ -58,7 +68,7 @@ export default async function DashboardPage() {
                 </LogCycleSheet>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-10">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
@@ -71,10 +81,16 @@ export default async function DashboardPage() {
                         <p className="text-xs text-muted-foreground mt-2">
                             {lastCycle
                                 ? `Last period: ${new Date(lastCycle.startDate).toLocaleDateString()}`
-                                : "Log your first cycle to start"}
+                                : "Log your first cycle"}
                         </p>
                     </CardContent>
                 </Card>
+
+                <PredictionCard
+                    predictedDate={predicted}
+                    range={range}
+                    isIrregular={stats.isIrregular}
+                />
 
                 <Card>
                     <CardContent className="p-6">
@@ -97,13 +113,13 @@ export default async function DashboardPage() {
                         </div>
                         <p className="text-lg font-medium">Coming soon</p>
                         <p className="text-xs text-muted-foreground mt-2">
-                            Log a few cycles and we&apos;ll start finding patterns.
+                            AI-powered patterns from your data.
                         </p>
                     </CardContent>
                 </Card>
             </div>
 
-            {profile.cycles.length > 0 && (
+            {recentCycles.length > 0 && (
                 <section>
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-semibold tracking-tight">
@@ -117,7 +133,7 @@ export default async function DashboardPage() {
                         </Button>
                     </div>
                     <div className="space-y-2">
-                        {profile.cycles.map((cycle) => (
+                        {recentCycles.map((cycle) => (
                             <Card key={cycle.id} className="hover:border-primary/30 transition">
                                 <CardContent className="p-4 flex items-center justify-between">
                                     <div>
