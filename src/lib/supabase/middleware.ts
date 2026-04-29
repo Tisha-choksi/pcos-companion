@@ -31,7 +31,8 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/register");
-  const isProtectedPage = pathname.startsWith("/dashboard") || pathname.startsWith("/onboarding");
+  const isProtectedPage =
+    pathname.startsWith("/dashboard") || pathname.startsWith("/welcome");
 
   if (!user && isProtectedPage) {
     const url = request.nextUrl.clone();
@@ -44,6 +45,5 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
   }
-
   return supabaseResponse;
 }
