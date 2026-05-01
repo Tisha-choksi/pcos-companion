@@ -2,8 +2,16 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
-import { Sparkles, LogOut, LayoutDashboard, Droplet, Activity } from "lucide-react";
-
+import {
+    Sparkles,
+    LogOut,
+    LayoutDashboard,
+    Droplet,
+    Activity,
+    Pill,
+    UtensilsCrossed,
+    Dumbbell,
+} from "lucide-react";
 export default async function DashboardLayout({
     children,
 }: {
@@ -24,7 +32,7 @@ export default async function DashboardLayout({
                             </div>
                             <span className="font-semibold text-lg">Lumen</span>
                         </Link>
-                        <nav className="hidden sm:flex items-center gap-1">
+                        <nav className="hidden md:flex items-center gap-1">
                             <Button asChild variant="ghost" size="sm">
                                 <Link href="/dashboard">
                                     <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -40,7 +48,25 @@ export default async function DashboardLayout({
                             <Button asChild variant="ghost" size="sm">
                                 <Link href="/log">
                                     <Activity className="h-4 w-4 mr-2" />
-                                    Daily log
+                                    Log
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/diet">
+                                    <UtensilsCrossed className="h-4 w-4 mr-2" />
+                                    Diet
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/workouts">
+                                    <Dumbbell className="h-4 w-4 mr-2" />
+                                    Workouts
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/medications">
+                                    <Pill className="h-4 w-4 mr-2" />
+                                    Meds
                                 </Link>
                             </Button>
                         </nav>
