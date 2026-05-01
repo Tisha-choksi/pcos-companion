@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
-const STEP_PATHS = ["/welcome", "/diagnosis", "/phenotype", "/medications"];
+const STEP_PATHS = ["/welcome", "/diagnosis", "/phenotype", "/setup-meds"];
 
 export default async function OnboardingLayout({
   children,

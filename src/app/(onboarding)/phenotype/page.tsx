@@ -44,7 +44,7 @@ export default function PhenotypePage() {
             return;
         }
 
-        router.push("/medications");
+        router.push("/setup-meds");
         router.refresh();
     }
 
