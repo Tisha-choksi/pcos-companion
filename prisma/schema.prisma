@@ -18,15 +18,22 @@ model Profile {
   weightKg           Float?     @map("weight_kg")
 
   diagnosedAt        DateTime?  @map("diagnosed_at") @db.Date
+  diagnosisStatus    DiagnosisStatus? @map("diagnosis_status")
   phenotype          Phenotype?
+  phenotypeAnswers   Json?      @map("phenotype_answers")
 
   onboardingComplete Boolean    @default(false) @map("onboarding_complete")
+  onboardingStep     Int        @default(0) @map("onboarding_step")
 
   createdAt          DateTime   @default(now()) @map("created_at")
   updatedAt          DateTime   @updatedAt @map("updated_at")
 
   cycles             Cycle[]
   symptomLogs        SymptomLog[]
+  medications        Medication[]
+  dietLogs           DietLog[]
+  workoutLogs        WorkoutLog[]
+
   @@map("profiles")
   @@schema("public")
 }
@@ -56,9 +63,9 @@ model SymptomLog {
   profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   date      DateTime  @db.Date
-  symptoms  Json      // { acne: 3, mood_low: 4, fatigue: 5, cravings: 2, bloating: 3, headache: 0 }
-  mood      Int?      // overall mood 1-5
-  energy    Int?      // overall energy 1-5
+  symptoms  Json
+  mood      Int?
+  energy    Int?
   notes     String?
 
   createdAt DateTime  @default(now()) @map("created_at")
@@ -67,6 +74,65 @@ model SymptomLog {
   @@unique([profileId, date])
   @@index([profileId, date])
   @@map("symptom_logs")
+  @@schema("public")
+}
+
+model Medication {
+  id           String    @id @default(uuid()) @db.Uuid
+  profileId    String    @map("profile_id") @db.Uuid
+  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  name         String
+  category     MedicationCategory
+  dosage       String?
+  frequency    String?
+  startedAt    DateTime  @map("started_at") @db.Date
+  stoppedAt    DateTime? @map("stopped_at") @db.Date
+  notes        String?
+
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  @@index([profileId, startedAt])
+  @@map("medications")
+  @@schema("public")
+}
+
+model DietLog {
+  id           String      @id @default(uuid()) @db.Uuid
+  profileId    String      @map("profile_id") @db.Uuid
+  profile      Profile     @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date         DateTime    @db.Date
+  mealType     MealType    @map("meal_type")
+  description  String
+  giCategory   GICategory? @map("gi_category")
+  notes        String?
+
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  @@index([profileId, date])
+  @@map("diet_logs")
+  @@schema("public")
+}
+
+model WorkoutLog {
+  id           String       @id @default(uuid()) @db.Uuid
+  profileId    String       @map("profile_id") @db.Uuid
+  profile      Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date         DateTime     @db.Date
+  workoutType  WorkoutType  @map("workout_type")
+  durationMin  Int          @map("duration_min")
+  intensity    Intensity?
+  notes        String?
+
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+
+  @@index([profileId, date])
+  @@map("workout_logs")
   @@schema("public")
 }
 
@@ -80,11 +146,66 @@ enum Phenotype {
   @@schema("public")
 }
 
+enum DiagnosisStatus {
+  DIAGNOSED
+  SUSPECTED
+  NOT_SURE
+
+  @@schema("public")
+}
+
 enum FlowIntensity {
   SPOTTING
   LIGHT
   MEDIUM
   HEAVY
+
+  @@schema("public")
+}
+
+enum MedicationCategory {
+  INSULIN_SENSITIZER
+  ANDROGEN_BLOCKER
+  HORMONAL
+  SUPPLEMENT
+  OTHER
+
+  @@schema("public")
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+
+  @@schema("public")
+}
+
+enum GICategory {
+  LOW
+  MEDIUM
+  HIGH
+
+  @@schema("public")
+}
+
+enum WorkoutType {
+  STRENGTH
+  WALK
+  YOGA
+  CARDIO
+  HIIT
+  PILATES
+  OTHER
+
+  @@schema("public")
+}
+
+enum Intensity {
+  LIGHT
+  MODERATE
+  INTENSE
 
   @@schema("public")
 }

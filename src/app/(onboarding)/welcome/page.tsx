@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2 } from "lucide-react";
+import { StepIndicator } from "../_components/StepIndicator";
 
 export default function WelcomePage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function WelcomePage() {
     setLoading(true);
     setError(null);
 
-    const res = await fetch("/api/onboarding", {
+    const res = await fetch("/api/onboarding/basics", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(form),
@@ -36,15 +37,17 @@ export default function WelcomePage() {
       return;
     }
 
-    router.push("/dashboard");
+    router.push("/diagnosis");
     router.refresh();
   }
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-2">
-        <p className="text-sm text-primary font-medium">Welcome</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Tell us about you</h1>
+    <div>
+      <StepIndicator currentStep={0} totalSteps={4} />
+
+      <div className="space-y-2 mb-8">
+        <p className="text-sm text-primary font-medium">About you</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Tell us the basics</h1>
         <p className="text-muted-foreground text-sm">
           We use this to personalize your insights. You can update these anytime.
         </p>
