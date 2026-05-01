@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Sparkles, LogOut, LayoutDashboard, Droplet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
 import { Sparkles, LogOut, LayoutDashboard, Droplet, Activity } from "lucide-react";
