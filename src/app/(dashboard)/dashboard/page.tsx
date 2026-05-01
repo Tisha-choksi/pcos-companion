@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { startOfDay } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, TrendingUp, Sparkles, ArrowRight, Plus, Activity } from "lucide-react";
+import { Calendar, Sparkles, ArrowRight, Plus, Activity, Pill } from "lucide-react";
 import {
     computeCycleStats,
     predictNextPeriod,
@@ -14,6 +14,7 @@ import {
 import { SYMPTOMS } from "@/lib/pcos/symptoms";
 import { LogCycleSheet } from "../cycle/_components/LogCycleSheet";
 import { PredictionCard } from "../cycle/_components/PredictionCard";
+import { PhenotypeCard } from "./_components/PhenotypeCard";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -22,7 +23,7 @@ export default async function DashboardPage() {
 
     const today = startOfDay(new Date());
 
-    const [profile, todayLog] = await Promise.all([
+    const [profile, todayLog, activeMeds] = await Promise.all([
         prisma.profile.findUnique({
             where: { id: user.id },
             include: {
@@ -30,9 +31,11 @@ export default async function DashboardPage() {
             },
         }),
         prisma.symptomLog.findUnique({
-            where: {
-                profileId_date: { profileId: user.id, date: today },
-            },
+            where: { profileId_date: { profileId: user.id, date: today } },
+        }),
+        prisma.medication.findMany({
+            where: { profileId: user.id, stoppedAt: null },
+            orderBy: { startedAt: "desc" },
         }),
     ]);
 
@@ -52,7 +55,6 @@ export default async function DashboardPage() {
 
     const firstName = profile.fullName?.split(" ")[0] || "there";
 
-    // Build today's symptom summary
     const todaySymptoms = (todayLog?.symptoms as Record<string, number>) || {};
     const activeSymptoms = Object.entries(todaySymptoms)
         .filter(([_, v]) => v > 0)
@@ -101,20 +103,7 @@ export default async function DashboardPage() {
                     isIrregular={stats.isIrregular}
                 />
 
-                <Card>
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                            <TrendingUp className="h-4 w-4" />
-                            <span>Mood today</span>
-                        </div>
-                        <p className="text-3xl font-semibold">
-                            {todayLog?.mood ? `${todayLog.mood}/5` : "—"}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            {todayLog?.energy ? `Energy ${todayLog.energy}/5` : "Not logged yet"}
-                        </p>
-                    </CardContent>
-                </Card>
+                <PhenotypeCard phenotype={profile.phenotype} />
 
                 <Card className="border-dashed bg-accent/30">
                     <CardContent className="p-6">
@@ -130,50 +119,95 @@ export default async function DashboardPage() {
                 </Card>
             </div>
 
-            {/* Today's symptoms section */}
-            <Card className="mb-8">
-                <CardContent className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-muted-foreground" />
-                            <h2 className="font-semibold">Today&apos;s log</h2>
+            {/* Today's log + Active meds row */}
+            <div className="grid md:grid-cols-2 gap-4 mb-8">
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Activity className="h-4 w-4 text-muted-foreground" />
+                                <h2 className="font-semibold">Today&apos;s log</h2>
+                            </div>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/log">
+                                    {todayLog ? "Edit" : "Log now"}
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                </Link>
+                            </Button>
                         </div>
-                        <Button asChild variant="ghost" size="sm">
-                            <Link href="/log">
-                                {todayLog ? "Edit" : "Log now"}
-                                <ArrowRight className="h-4 w-4 ml-1" />
-                            </Link>
-                        </Button>
-                    </div>
 
-                    {!todayLog ? (
-                        <p className="text-sm text-muted-foreground py-4">
-                            You haven&apos;t logged anything today yet.
-                        </p>
-                    ) : activeSymptoms.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-4">
-                            No symptoms logged today. Feeling good!
-                        </p>
-                    ) : (
-                        <div className="flex flex-wrap gap-2">
-                            {activeSymptoms.map(([key, severity]) => {
-                                const meta = SYMPTOMS.find((s) => s.key === key);
-                                if (!meta) return null;
-                                return (
-                                    <div
-                                        key={key}
-                                        className="flex items-center gap-1.5 px-3 py-1.5 bg-muted rounded-full text-xs"
-                                    >
-                                        <span>{meta.emoji}</span>
-                                        <span className="font-medium">{meta.label}</span>
-                                        <span className="text-muted-foreground">{severity}/5</span>
-                                    </div>
-                                );
-                            })}
+                        {!todayLog ? (
+                            <p className="text-sm text-muted-foreground">
+                                You haven&apos;t logged anything today yet.
+                            </p>
+                        ) : activeSymptoms.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No symptoms today. Feeling good!
+                            </p>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">
+                                {activeSymptoms.slice(0, 5).map(([key, severity]) => {
+                                    const meta = SYMPTOMS.find((s) => s.key === key);
+                                    if (!meta) return null;
+                                    return (
+                                        <div
+                                            key={key}
+                                            className="flex items-center gap-1.5 px-2.5 py-1 bg-muted rounded-full text-xs"
+                                        >
+                                            <span>{meta.emoji}</span>
+                                            <span className="font-medium">{meta.label}</span>
+                                            <span className="text-muted-foreground">{severity}/5</span>
+                                        </div>
+                                    );
+                                })}
+                                {activeSymptoms.length > 5 && (
+                                    <span className="text-xs text-muted-foreground self-center">
+                                        +{activeSymptoms.length - 5} more
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-2">
+                                <Pill className="h-4 w-4 text-muted-foreground" />
+                                <h2 className="font-semibold">Active medications</h2>
+                            </div>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/medications">
+                                    Manage
+                                    <ArrowRight className="h-4 w-4 ml-1" />
+                                </Link>
+                            </Button>
                         </div>
-                    )}
-                </CardContent>
-            </Card>
+                        {activeMeds.length === 0 ? (
+                            <p className="text-sm text-muted-foreground">
+                                No medications tracked.
+                            </p>
+                        ) : (
+                            <div className="flex flex-wrap gap-2">
+                                {activeMeds.slice(0, 4).map((med) => (
+                                    <div
+                                        key={med.id}
+                                        className="px-2.5 py-1 bg-muted rounded-full text-xs font-medium"
+                                    >
+                                        {med.name}
+                                    </div>
+                                ))}
+                                {activeMeds.length > 4 && (
+                                    <span className="text-xs text-muted-foreground self-center">
+                                        +{activeMeds.length - 4} more
+                                    </span>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             {profile.cycles.length > 0 && (
                 <section>
