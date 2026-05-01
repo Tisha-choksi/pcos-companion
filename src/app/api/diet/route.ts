@@ -29,9 +29,7 @@ export async function POST(request: Request) {
                 date: new Date(parsed.data.date),
                 mealType: parsed.data.mealType,
                 description: parsed.data.description,
-                giCategory: parsed.data.giCategory && parsed.data.giCategory !== ""
-                    ? parsed.data.giCategory
-                    : null,
+                giCategory: parsed.data.giCategory ? parsed.data.giCategory : null,
                 notes: parsed.data.notes?.trim() || null,
             },
         });
