@@ -26,7 +26,7 @@ model Profile {
   updatedAt          DateTime   @updatedAt @map("updated_at")
 
   cycles             Cycle[]
-
+  symptomLogs        SymptomLog[]
   @@map("profiles")
   @@schema("public")
 }
@@ -47,6 +47,26 @@ model Cycle {
 
   @@index([profileId, startDate])
   @@map("cycles")
+  @@schema("public")
+}
+
+model SymptomLog {
+  id        String    @id @default(uuid()) @db.Uuid
+  profileId String    @map("profile_id") @db.Uuid
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date      DateTime  @db.Date
+  symptoms  Json      // { acne: 3, mood_low: 4, fatigue: 5, cravings: 2, bloating: 3, headache: 0 }
+  mood      Int?      // overall mood 1-5
+  energy    Int?      // overall energy 1-5
+  notes     String?
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  @@unique([profileId, date])
+  @@index([profileId, date])
+  @@map("symptom_logs")
   @@schema("public")
 }
 
