@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Sparkles, LogOut, LayoutDashboard, Droplet } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { Button } from "@/components/ui/button";
+import { Sparkles, LogOut, LayoutDashboard, Droplet, Activity } from "lucide-react";
 
 export default async function DashboardLayout({
     children,
@@ -35,6 +36,12 @@ export default async function DashboardLayout({
                                 <Link href="/cycle">
                                     <Droplet className="h-4 w-4 mr-2" />
                                     Cycles
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/log">
+                                    <Activity className="h-4 w-4 mr-2" />
+                                    Daily log
                                 </Link>
                             </Button>
                         </nav>
