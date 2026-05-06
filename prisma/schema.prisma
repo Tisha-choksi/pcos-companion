@@ -209,3 +209,43 @@ enum Intensity {
 
   @@schema("public")
 }
+
+model Conversation {
+  id           String     @id @default(uuid()) @db.Uuid
+  profileId    String     @map("profile_id") @db.Uuid
+  profile      Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  title        String?    // optional, can be auto-generated
+  archived     Boolean    @default(false)
+
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  messages     Message[]
+
+  @@index([profileId, archived, updatedAt])
+  @@map("conversations")
+  @@schema("public")
+}
+
+model Message {
+  id              String        @id @default(uuid()) @db.Uuid
+  conversationId  String        @map("conversation_id") @db.Uuid
+  conversation    Conversation  @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role            MessageRole
+  content         String
+
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+  @@schema("public")
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+
+  @@schema("public")
+}
