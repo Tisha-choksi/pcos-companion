@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -5,9 +6,9 @@ import { startOfDay, subDays, format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell, Plus } from "lucide-react";
 import { AddWorkoutSheet } from "./_components/AddWorkoutSheet";
 import { DeleteWorkoutButton } from "./_components/DeleteWorkoutButton";
+import { Dumbbell, Plus, Sparkles } from "lucide-react";
 
 const WORKOUT_LABELS: Record<string, string> = {
     STRENGTH: "💪 Strength",
@@ -39,19 +40,27 @@ export default async function WorkoutsPage() {
 
     return (
         <div className="mx-auto max-w-3xl px-6 py-12">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 gap-3">
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">Workouts</h1>
                     <p className="text-muted-foreground mt-1">
                         Strength training and walking are PCOS gold — track them here.
                     </p>
                 </div>
-                <AddWorkoutSheet>
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Log workout
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/workouts/plan">
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Get plan
+                        </Link>
                     </Button>
-                </AddWorkoutSheet>
+                    <AddWorkoutSheet>
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Log workout
+                        </Button>
+                    </AddWorkoutSheet>
+                </div>
             </div>
 
             {workouts.length > 0 && (
