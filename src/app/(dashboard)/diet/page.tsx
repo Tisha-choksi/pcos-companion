@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -5,9 +6,9 @@ import { startOfDay, subDays, format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UtensilsCrossed, Plus } from "lucide-react";
 import { AddMealSheet } from "./_components/AddMealSheet";
 import { DeleteMealButton } from "./_components/DeleteMealButton";
+import { UtensilsCrossed, Plus, Sparkles } from "lucide-react";
 
 const MEAL_LABELS: Record<string, string> = {
     BREAKFAST: "🌅 Breakfast",
@@ -52,19 +53,27 @@ export default async function DietPage() {
 
     return (
         <div className="mx-auto max-w-3xl px-6 py-12">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-8 gap-3">
                 <div>
                     <h1 className="text-3xl font-semibold tracking-tight">Diet</h1>
                     <p className="text-muted-foreground mt-1">
                         Track meals to spot how food affects your symptoms.
                     </p>
                 </div>
-                <AddMealSheet>
-                    <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Log meal
+                <div className="flex items-center gap-2">
+                    <Button asChild variant="outline">
+                        <Link href="/diet/plan">
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Get plan
+                        </Link>
                     </Button>
-                </AddMealSheet>
+                    <AddMealSheet>
+                        <Button>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Log meal
+                        </Button>
+                    </AddMealSheet>
+                </div>
             </div>
 
             {meals.length > 0 && (
