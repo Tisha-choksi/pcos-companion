@@ -5,9 +5,19 @@ import { prisma } from "@/lib/prisma";
 
 const schema = z.object({
   date: z.string().min(1),
-  workoutType: z.enum(["STRENGTH", "WALK", "YOGA", "CARDIO", "HIIT", "PILATES", "OTHER"]),
+  workoutType: z.enum([
+    "STRENGTH",
+    "WALK",
+    "YOGA",
+    "CARDIO",
+    "HIIT",
+    "PILATES",
+    "OTHER",
+  ]),
   durationMin: z.string().min(1),
-  intensity: z.enum(["LIGHT", "MODERATE", "INTENSE", ""]).optional(),
+  intensity: z
+    .union([z.enum(["LIGHT", "MODERATE", "INTENSE"]), z.literal("")])
+    .optional(),
   notes: z.string().optional(),
 });
 
@@ -22,6 +32,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid input." }, { status: 400 });
   }
 
+  const intensity = parsed.data.intensity;
+  const intensityValue = intensity || null;
+
   try {
     const workout = await prisma.workoutLog.create({
       data: {
@@ -29,9 +42,7 @@ export async function POST(request: Request) {
         date: new Date(parsed.data.date),
         workoutType: parsed.data.workoutType,
         durationMin: parseInt(parsed.data.durationMin),
-        intensity: parsed.data.intensity && parsed.data.intensity !== ""
-          ? parsed.data.intensity
-          : null,
+        intensity: intensityValue,
         notes: parsed.data.notes?.trim() || null,
       },
     });
