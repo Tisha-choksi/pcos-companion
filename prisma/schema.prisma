@@ -33,7 +33,8 @@ model Profile {
   medications        Medication[]
   dietLogs           DietLog[]
   workoutLogs        WorkoutLog[]
-
+  conversations      Conversation[]
+  
   @@map("profiles")
   @@schema("public")
 }
