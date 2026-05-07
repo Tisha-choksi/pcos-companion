@@ -11,6 +11,7 @@ import {
     Pill,
     UtensilsCrossed,
     Dumbbell,
+    MessageCircle,
 } from "lucide-react";
 export default async function DashboardLayout({
     children,
@@ -43,6 +44,12 @@ export default async function DashboardLayout({
                                 <Link href="/cycle">
                                     <Droplet className="h-4 w-4 mr-2" />
                                     Cycles
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/chat">
+                                    <MessageCircle className="h-4 w-4 mr-2" />
+                                    Chat
                                 </Link>
                             </Button>
                             <Button asChild variant="ghost" size="sm">
