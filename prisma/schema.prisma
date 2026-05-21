@@ -34,6 +34,7 @@ model Profile {
   dietLogs           DietLog[]
   workoutLogs        WorkoutLog[]
   conversations      Conversation[]
+  labValues          LabValue[]
   
   @@map("profiles")
   @@schema("public")
@@ -134,6 +135,26 @@ model WorkoutLog {
 
   @@index([profileId, date])
   @@map("workout_logs")
+  @@schema("public")
+}
+
+model LabValue {
+  id        String   @id @default(uuid()) @db.Uuid
+  profileId String   @map("profile_id") @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  date      DateTime @db.Date
+  testName  String   @map("test_name")
+  value     Float
+  unit      String?
+  range     String?  // reference range
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([profileId, date])
+  @@index([profileId, testName, date])
+  @@map("lab_values")
   @@schema("public")
 }
 
