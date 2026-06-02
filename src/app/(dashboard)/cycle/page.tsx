@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar as CalendarIcon } from "lucide-react";
+import { ShowMore } from "@/components/shared/ShowMore";
 import {
     computeCycleStats,
     predictNextPeriod,
@@ -125,9 +126,11 @@ export default async function CyclePage() {
                     <section>
                         <h2 className="font-semibold text-lg mb-3">History</h2>
                         <div className="space-y-2">
-                            {cyclesWithLength.map((cycle) => (
-                                <CycleListItem key={cycle.id} cycle={cycle} />
-                            ))}
+                            <ShowMore initial={5} step={5} label="Show older cycles">
+                                {cyclesWithLength.map((cycle) => (
+                                    <CycleListItem key={cycle.id} cycle={cycle} />
+                                ))}
+                            </ShowMore>
                         </div>
                     </section>
                 </div>

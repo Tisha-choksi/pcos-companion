@@ -5,16 +5,18 @@ import { prisma } from "@/lib/prisma";
 import { startOfDay } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Calendar, Sparkles, ArrowRight, Plus, Activity, Pill } from "lucide-react";
+import { Calendar, ArrowRight, Plus, Activity, Pill } from "lucide-react";
 import {
     computeCycleStats,
     predictNextPeriod,
     predictionRange,
 } from "@/lib/pcos/cycle-stats";
 import { SYMPTOMS } from "@/lib/pcos/symptoms";
+import { subDays } from "date-fns";
 import { LogCycleSheet } from "../cycle/_components/LogCycleSheet";
 import { PredictionCard } from "../cycle/_components/PredictionCard";
 import { PhenotypeCard } from "./_components/PhenotypeCard";
+import { InsightsCard } from "./_components/InsightsCard";
 
 export default async function DashboardPage() {
     const supabase = await createClient();
@@ -23,7 +25,10 @@ export default async function DashboardPage() {
 
     const today = startOfDay(new Date());
 
-    const [profile, todayLog, activeMeds] = await Promise.all([
+    const fourteenDaysAgo = subDays(today, 14);
+    const sevenDaysAgo = subDays(today, 7);
+
+    const [profile, todayLog, activeMeds, recentSymptoms, recentMeals, recentWorkouts] = await Promise.all([
         prisma.profile.findUnique({
             where: { id: user.id },
             include: {
@@ -36,6 +41,18 @@ export default async function DashboardPage() {
         prisma.medication.findMany({
             where: { profileId: user.id, stoppedAt: null },
             orderBy: { startedAt: "desc" },
+        }),
+        prisma.symptomLog.findMany({
+            where: { profileId: user.id, date: { gte: fourteenDaysAgo } },
+            orderBy: { date: "desc" },
+        }),
+        prisma.dietLog.findMany({
+            where: { profileId: user.id, date: { gte: sevenDaysAgo } },
+            orderBy: { date: "desc" },
+        }),
+        prisma.workoutLog.findMany({
+            where: { profileId: user.id, date: { gte: sevenDaysAgo } },
+            orderBy: { date: "desc" },
         }),
     ]);
 
@@ -105,18 +122,14 @@ export default async function DashboardPage() {
 
                 <PhenotypeCard phenotype={profile.phenotype} />
 
-                <Card className="border-dashed bg-accent/30">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-2 text-muted-foreground text-sm mb-3">
-                            <Sparkles className="h-4 w-4" />
-                            <span>Insights</span>
-                        </div>
-                        <p className="text-lg font-medium">Coming soon</p>
-                        <p className="text-xs text-muted-foreground mt-2">
-                            AI-powered patterns from your data.
-                        </p>
-                    </CardContent>
-                </Card>
+                <InsightsCard
+                    stats={stats}
+                    symptomDays={recentSymptoms.length}
+                    mealsLogged={recentMeals.length}
+                    workoutsLogged={recentWorkouts.length}
+                    activeMedsCount={activeMeds.length}
+                    phenotype={profile.phenotype}
+                />
             </div>
 
             {/* Today's log + Active meds row */}

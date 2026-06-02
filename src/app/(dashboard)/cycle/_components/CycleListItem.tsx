@@ -12,14 +12,9 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Trash2, Droplet, MoreVertical } from "lucide-react";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Trash2, Pencil, Droplet } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { LogCycleSheet } from "./LogCycleSheet";
 
 type Cycle = {
     id: string;
@@ -41,6 +36,7 @@ export function CycleListItem({ cycle }: { cycle: Cycle }) {
     const router = useRouter();
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [editOpen, setEditOpen] = useState(false);
 
     const start = new Date(cycle.startDate);
     const end = cycle.endDate ? new Date(cycle.endDate) : null;
@@ -54,12 +50,18 @@ export function CycleListItem({ cycle }: { cycle: Cycle }) {
     async function handleDelete() {
         setDeleting(true);
         const res = await fetch(`/api/cycles/${cycle.id}`, { method: "DELETE" });
-        if (res.ok) {
-            router.refresh();
-        }
+        if (res.ok) router.refresh();
         setDeleting(false);
         setDeleteOpen(false);
     }
+
+    const editData = {
+        id: cycle.id,
+        startDate: start.toISOString().split("T")[0],
+        endDate: end ? end.toISOString().split("T")[0] : "",
+        flowIntensity: cycle.flowIntensity || "",
+        notes: cycle.notes || "",
+    };
 
     return (
         <>
@@ -105,24 +107,23 @@ export function CycleListItem({ cycle }: { cycle: Cycle }) {
                         )}
                     </div>
 
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreVertical className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem
-                                onClick={() => setDeleteOpen(true)}
-                                className="text-destructive focus:text-destructive"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setEditOpen(true)}>
+                            <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-destructive"
+                            onClick={() => setDeleteOpen(true)}
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
+
+            <LogCycleSheet editData={editData} open={editOpen} onOpenChange={setEditOpen} />
 
             <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
                 <DialogContent>
@@ -133,18 +134,10 @@ export function CycleListItem({ cycle }: { cycle: Cycle }) {
                         </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="gap-2">
-                        <Button
-                            variant="outline"
-                            onClick={() => setDeleteOpen(false)}
-                            disabled={deleting}
-                        >
+                        <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
                             Cancel
                         </Button>
-                        <Button
-                            variant="destructive"
-                            onClick={handleDelete}
-                            disabled={deleting}
-                        >
+                        <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
                             {deleting ? "Deleting..." : "Delete"}
                         </Button>
                     </DialogFooter>
