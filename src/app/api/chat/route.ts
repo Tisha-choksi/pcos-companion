@@ -8,8 +8,12 @@ import {
     buildUserContext,
     formatContextForPrompt,
 } from "@/lib/ai/build-user-context";
+import { rateLimit, rateLimitResponse } from "@/lib/rate-limit";
 
 export const maxDuration = 30;
+
+// Limit recent messages sent to the AI to control token usage
+const MAX_MESSAGES = 20;
 
 const schema = z.object({
     message: z.string().min(1).max(2000),
@@ -27,6 +31,11 @@ export async function POST(request: Request) {
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
         return NextResponse.json({ error: "Invalid input." }, { status: 400 });
+    }
+
+    // Rate limit: 20 requests per minute per user
+    if (!rateLimit(`chat:${user.id}`, { maxRequests: 20 }).ok) {
+        return rateLimitResponse();
     }
 
     const { message, conversationId: providedConvId } = parsed.data;
@@ -64,7 +73,7 @@ export async function POST(request: Request) {
             prisma.message.findMany({
                 where: { conversationId },
                 orderBy: { createdAt: "asc" },
-                take: 30,
+                take: MAX_MESSAGES,
             }),
         ]);
 
