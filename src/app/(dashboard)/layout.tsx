@@ -12,7 +12,13 @@ import {
     UtensilsCrossed,
     Dumbbell,
     MessageCircle,
+    BarChart3,
+    Microscope,
+    FileText,
+    Bell,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { ReminderBell } from "@/components/shared/ReminderBell";
 export default async function DashboardLayout({
     children,
 }: {
@@ -76,12 +82,38 @@ export default async function DashboardLayout({
                                     Meds
                                 </Link>
                             </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/patterns">
+                                    <BarChart3 className="h-4 w-4 mr-2" />
+                                    Patterns
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/labs">
+                                    <Microscope className="h-4 w-4 mr-2" />
+                                    Labs
+                                </Link>
+                            </Button>
+                            <Button asChild variant="ghost" size="sm">
+                                <Link href="/reports">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Reports
+                                </Link>
+                            </Button>
                         </nav>
                     </div>
-                    <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground hidden sm:block">
+                    <div className="flex items-center gap-1">
+                        <span className="text-sm text-muted-foreground hidden sm:block mr-2">
                             {user.email}
                         </span>
+                        <Button asChild variant="ghost" size="sm" className="hidden md:flex">
+                            <Link href="/reminders">
+                                <Bell className="h-4 w-4 mr-2" />
+                                Reminders
+                            </Link>
+                        </Button>
+                        <ReminderBell />
+                        <ThemeToggle />
                         <form action="/auth/signout" method="post">
                             <Button type="submit" variant="ghost" size="sm">
                                 <LogOut className="h-4 w-4 mr-2" />
