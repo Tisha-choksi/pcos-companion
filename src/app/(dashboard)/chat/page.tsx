@@ -13,11 +13,21 @@ export default async function ChatPage() {
         select: { fullName: true, phenotype: true },
     });
 
-    // Load most recent conversation if exists
     const conversation = await prisma.conversation.findFirst({
         where: { profileId: user.id, archived: false },
         orderBy: { updatedAt: "desc" },
         include: { messages: { orderBy: { createdAt: "asc" } } },
+    });
+
+    const conversations = await prisma.conversation.findMany({
+        where: { profileId: user.id, archived: false },
+        orderBy: { updatedAt: "desc" },
+        select: {
+            id: true,
+            title: true,
+            updatedAt: true,
+            _count: { select: { messages: true } },
+        },
     });
 
     const initialMessages = conversation
@@ -32,6 +42,12 @@ export default async function ChatPage() {
         <ChatClient
             initialMessages={initialMessages}
             initialConversationId={conversation?.id || null}
+            conversations={conversations.map((c) => ({
+                id: c.id,
+                title: c.title,
+                messageCount: c._count.messages,
+                updatedAt: c.updatedAt.toISOString(),
+            }))}
             userName={profile?.fullName?.split(" ")[0] || "there"}
             phenotype={profile?.phenotype}
         />
